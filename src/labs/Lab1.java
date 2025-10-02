@@ -7,6 +7,12 @@ import java.io.FileOutputStream;
 import java.io.ObjectOutputStream;
 import java.util.Collection;
 
+//Expected output:
+//Word = is ( word with the highest single document frequency)
+//Frequency = 33 (frequency)
+//Distinct Number of Words = 90535 (sum of distinct number of words in each document over all documents)
+//Total word count = 132267 (sum of frequencies of all non-noise words stored)
+
 public class Lab1 {
     public static void main(String[] args) {
 
@@ -32,8 +38,7 @@ public class Lab1 {
         System.out.println("Total word count = " + words);
 
         // serialize the DocumentCollection object to a file
-        try(ObjectOutputStream os = new ObjectOutputStream(new
-                FileOutputStream(new File("./files/docvector")))){
+        try(ObjectOutputStream os = new ObjectOutputStream(new FileOutputStream(new File("./files/docvector")))){
             os.writeObject(docs);
         } catch(Exception e){
             System.out.println(e);

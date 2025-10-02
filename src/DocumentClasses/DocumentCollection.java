@@ -29,7 +29,7 @@ public class DocumentCollection implements Serializable {
             "would", "you", "your", "yours", "yes"};
 
     //  a constructor that uses the data in the file to populate the documents variable
-    public DocumentCollection(String inputFile) {
+    public DocumentCollection(String inputFile, String type) {
         documents = new HashMap<>();
         File file = new File(inputFile);
         boolean inBody;
@@ -40,7 +40,12 @@ public class DocumentCollection implements Serializable {
                 // if line starts with ".I" get key value
                 if (line.startsWith(".I")) {
                     inBody = false;
-                    TextVector textVector = new TextVector();
+                    TextVector textVector;
+                    if (type.equals("document")) {
+                        textVector = new DocumentVector();
+                    } else {
+                        textVector = new QueryVector();
+                    }
                     int key = Integer.parseInt(line.substring(3));
                     while (reader.hasNextLine()) {
                         line = reader.nextLine();
@@ -112,4 +117,6 @@ public class DocumentCollection implements Serializable {
         }
         return total;
     }
+
+    // calls normalize(Dc) on each document
 }
