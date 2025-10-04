@@ -54,7 +54,6 @@ public abstract class TextVector implements Serializable {
 
     //  returns the number of distinct words that are stored
     public int getDistinctWordCount() {
-        // TODO: how is distinct word count different than vector size? is it?
         return rawVector.size();
     }
 
@@ -96,5 +95,9 @@ public abstract class TextVector implements Serializable {
     public ArrayList<Integer> findClosestDocuments(DocumentCollection docs) {
         // TODO: implement
         return null;
+    }
+
+    public double log2(double x) {
+        return Math.log(x) / Math.log(2);
     }
 }

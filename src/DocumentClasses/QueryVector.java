@@ -11,8 +11,17 @@ public class QueryVector extends TextVector{
         return normalizedVector.entrySet();
     }
 
+    // normalizes one query vector
     @Override
     public void normalize(DocumentCollection dc) {
+        int maxF = getHighestRawFrequency();
+        int m = dc.getSize(); // total number of docs
+        for (String word : rawVector.keySet()) {
+            int f = getRawFrequency(word);
+            int df = dc.getDocumentFrequency(word);
+            double normalizedValue = (0.5 + (0.5 * ((double) f / maxF)) ) * log2( (double) m / df);
+            normalizedVector.put(word, normalizedValue);
+        }
     }
 
     @Override

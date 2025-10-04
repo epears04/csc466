@@ -12,7 +12,14 @@ public class DocumentVector extends TextVector{
 
     @Override
     public void normalize(DocumentCollection dc) {
-
+        int maxF = getHighestRawFrequency();
+        int m = dc.getSize();
+        for (String word : rawVector.keySet()) {
+            int f = getRawFrequency(word);
+            int df = dc.getDocumentFrequency(word);
+            double normalizedValue = ((double) f / maxF) * log2((double) m / df);
+            normalizedVector.put(word, normalizedValue);
+        }
     }
 
     @Override
