@@ -85,16 +85,56 @@ public abstract class TextVector implements Serializable {
     public double getL2Norm() {
         double sumSquares = 0;
         for (String word : rawVector.keySet()) {
-            double normalFreq =getNormalizedFrequency(word);
+            double normalFreq = getNormalizedFrequency(word);
             sumSquares += normalFreq*normalFreq;
         }
         return Math.sqrt(sumSquares);
     }
 
     // returns the 20 closes documents
-    public ArrayList<Integer> findClosestDocuments(DocumentCollection docs) {
-        // TODO: implement
-        return null;
+    public ArrayList<Integer> findClosestDocuments(DocumentCollection docs, DocumentDistance distanceAlg) {
+        // return if query is empty
+        if (this.getL2Norm() == 0) {
+            return new ArrayList<>();
+        }
+
+        // Comparator for smaller to larger (for PQ)
+        Comparator<Map.Entry<Integer, Double>> comparator = (a, b) -> {
+            int c = Double.compare(a.getValue(), b.getValue());
+            return (c != 0) ? c : Integer.compare(a.getKey(), b.getKey()); // break ties with key
+        };
+
+        PriorityQueue<Map.Entry<Integer, Double>> pq = new PriorityQueue<>(20, comparator);
+        for (Map.Entry<Integer, TextVector> entry : docs.getEntrySet()) {
+            int docId = entry.getKey();
+            TextVector doc = entry.getValue();
+
+            if (doc.getL2Norm() == 0) continue; // skip empty docs
+            double similarity = distanceAlg.findDistance(this, doc, docs);
+
+            if (pq.size() < 20) {
+                pq.add(new AbstractMap.SimpleEntry<>(docId, similarity));
+            } else if (similarity > pq.peek().getValue() ||
+                    (similarity == pq.peek().getValue() && docId < pq.peek().getKey())) {
+                // replace worst with new worst
+                pq.poll();
+                pq.add(new AbstractMap.SimpleEntry<>(docId, similarity));
+            }
+        }
+
+        ArrayList<Map.Entry<Integer, Double>> result = new ArrayList<>(pq);
+
+        // sort descending
+        result.sort((a, b) -> {
+            int c = Double.compare(b.getValue(), a.getValue());
+            return (c != 0) ? c : Integer.compare(a.getKey(), b.getKey());
+        });
+
+        ArrayList<Integer> topDocIds = new ArrayList<>(20);
+        for (Map.Entry<Integer, Double> entry : result) {
+            topDocIds.add(entry.getKey());
+        }
+        return topDocIds;
     }
 
     public double log2(double x) {

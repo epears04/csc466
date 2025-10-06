@@ -16,7 +16,7 @@ import java.util.Collection;
 public class Lab1 {
     public static void main(String[] args) {
 
-        DocumentCollection docs = new DocumentCollection("./files/documents.txt");
+        DocumentCollection docs = new DocumentCollection("./files/documents.txt", "document");
 
         String maxWord = "";
         int maxWordFreq = 0;

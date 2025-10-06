@@ -118,5 +118,10 @@ public class DocumentCollection implements Serializable {
         return total;
     }
 
-    // calls normalize(Dc) on each document
+    // calls normalize(dc) on each document
+    public void normalize(DocumentCollection dc) {
+        for (Map.Entry<Integer, TextVector> entry : documents.entrySet()) {
+            entry.getValue().normalize(dc);
+        }
+    }
 }
