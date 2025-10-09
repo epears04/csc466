@@ -40,14 +40,14 @@ public abstract class TextVector implements Serializable {
 
     // returns the frequency of the word
     public int getRawFrequency(String word) {
-        return rawVector.get(word);
+        return rawVector.getOrDefault(word, 0);
     }
 
     // returns the total number of non-noise words that are stored for the document
     public int getTotalWordCount() {
         int count = 0;
         for (String word : rawVector.keySet()) {
-            count += rawVector.get(word);
+            count += rawVector.getOrDefault(word, 0);
         }
         return count;
     }
@@ -61,7 +61,7 @@ public abstract class TextVector implements Serializable {
     public int getHighestRawFrequency() {
         int maxFreq = 0;
         for (String word : rawVector.keySet()) {
-            if (rawVector.get(word) > maxFreq) {
+            if (rawVector.getOrDefault(word, 0) > maxFreq) {
                 maxFreq = rawVector.get(word);
             }
         }
@@ -94,7 +94,7 @@ public abstract class TextVector implements Serializable {
     // returns the 20 closes documents
     public ArrayList<Integer> findClosestDocuments(DocumentCollection docs, DocumentDistance distanceAlg) {
         // return if query is empty
-        if (this.getL2Norm() == 0) {
+        if (this.getTotalWordCount() == 0) {
             return new ArrayList<>();
         }
 
@@ -109,7 +109,7 @@ public abstract class TextVector implements Serializable {
             int docId = entry.getKey();
             TextVector doc = entry.getValue();
 
-            if (doc.getL2Norm() == 0) continue; // skip empty docs
+            if (doc.getTotalWordCount() == 0) continue; // skip empty docs
             double similarity = distanceAlg.findDistance(this, doc, docs);
 
             if (pq.size() < 20) {
@@ -139,5 +139,13 @@ public abstract class TextVector implements Serializable {
 
     public double log2(double x) {
         return Math.log(x) / Math.log(2);
+    }
+
+    public int getDocLength() {
+        int docLength = 0;
+        for (String word : rawVector.keySet()) {
+            docLength += rawVector.getOrDefault(word, 0);
+        }
+        return docLength;
     }
 }

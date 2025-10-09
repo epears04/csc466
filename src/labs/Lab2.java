@@ -7,7 +7,6 @@ import DocumentClasses.TextVector;
 import java.io.*;
 import java.util.*;
 
-
 public class Lab2 {
     
     public static DocumentCollection documents;
@@ -38,8 +37,8 @@ public class Lab2 {
         HashMap<Integer, ArrayList<Integer>> results = new HashMap<>();
         for (Map.Entry<Integer, TextVector> entry : queries.getEntrySet()) {
             TextVector query = entry.getValue();
-            ArrayList<Integer> vector = query.findClosestDocuments(documents, cosine);
-            results.put(queryNum++, vector);
+            ArrayList<Integer> closestDocs = query.findClosestDocuments(documents, cosine);
+            results.put(queryNum++, closestDocs);
         }
 
         // serialize the DocumentCollection object to a file
