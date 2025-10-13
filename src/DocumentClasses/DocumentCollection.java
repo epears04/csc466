@@ -32,6 +32,7 @@ public class DocumentCollection implements Serializable {
     public DocumentCollection(String inputFile, String type) {
         documents = new HashMap<>();
         File file = new File(inputFile);
+        int queryNum = 1;
         boolean inBody;
 
         try (Scanner reader = new Scanner(file)) {
@@ -66,7 +67,13 @@ public class DocumentCollection implements Serializable {
                             }
                         }
                     }
-                    documents.put(key, textVector);
+                    if (type.equals("document")) {
+                        documents.put(key, textVector);
+                    } else {
+                        // use numbers 1 to 225 for queries
+                        documents.put(queryNum, textVector);
+                        queryNum++;
+                    }
                 }
             }
         } catch (FileNotFoundException e) {
@@ -85,12 +92,12 @@ public class DocumentCollection implements Serializable {
     }
 
     // returns the average length of a document (not counting noise words)
-    public int getAverageDocumentLength() {
+    public double getAverageDocumentLength() {
         int total = 0;
         for (Integer id : documents.keySet()) {
             total += documents.get(id).getTotalWordCount();
         }
-        return total / documents.size();
+        return (double) total / documents.size();
     }
 
     // returns number of documents

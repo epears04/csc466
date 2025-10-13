@@ -39,7 +39,6 @@ public class Lab3 {
             TextVector query = entry.getValue();
             ArrayList<Integer> closestDocs = query.findClosestDocuments(documents, okapi);
             okapiResults.put(entry.getKey(), closestDocs); // input query number and closest docs
-            // TODO: should query number correlate to query number we made in lab 2?
         }
 
         System.out.println("Parsing human judgement file");
@@ -78,37 +77,42 @@ public class Lab3 {
     // human judgement: key -> query number, value -> relevant docs
     public static double computeMap(HashMap<Integer, ArrayList<Integer>> humanJudgement,
                              HashMap<Integer, ArrayList<Integer>> computerResults) {
-        double sum = 0.0;
-        int queryNum = 0;
-        // loop through each query
-        for  (Map.Entry<Integer, ArrayList<Integer>> entry : computerResults.entrySet()) {
-            int queryId = entry.getKey();
-            ArrayList<Integer> computerRanks = entry.getValue();
-            ArrayList<Integer> humanRanks = humanJudgement.get(queryId);
 
-            // return early if no human relevant documents
-            if (humanRanks == null || humanRanks.isEmpty()) {
-                queryNum++;
+        double totalMap = 0.0;
+        int counted = 0;
+
+        for (int i = 1; i <= 20; i++) {
+            ArrayList<Integer> computer = computerResults.get(i);
+            Set<Integer> human = new HashSet<>(humanJudgement.get(i));
+
+            if (computer == null || computer.isEmpty()) continue; // no computer results
+            if (human == null || human.isEmpty()) {
+                // no judgements
+                counted++;
                 continue;
             }
 
-            int numHit = 0;
-            double queryPrecision = 0.0;
-            for (int i = 1; i <= 20; i++) {
-                int docId = computerRanks.get(i - 1);
-                if (humanRanks.contains(docId)) {
-                    numHit++;
-                    queryPrecision += (double) numHit / i;
+            Set<Integer> humanSet = new HashSet<>(human); // use set for quicker look up
+
+            int numCorrect = 0;
+            double sumPrecision = 0.0;
+            for (int j = 1; j <= Math.min(20, computer.size()); j++) {
+                int docId = computer.get(j-1); // adjust for starting by 1
+                if (humanSet.contains(docId)) {
+                    numCorrect += 1;
+                    sumPrecision += (double) numCorrect / j;
                 }
             }
 
-            double avgPrecision = queryPrecision / (double) humanRanks.size();
-            sum += avgPrecision;
-            queryNum++;
+            double ap = sumPrecision / humanSet.size();
+            totalMap += ap;
+            counted++;
         }
-        if (queryNum == 0) {
+
+        if (counted == 0) {
             return 0.0;
         }
-        return sum / (double) queryNum;
+
+        return totalMap / counted;
     }
 }
