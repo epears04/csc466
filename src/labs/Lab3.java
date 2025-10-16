@@ -86,7 +86,7 @@ public class Lab3 {
             Set<Integer> human = new HashSet<>(humanJudgement.get(i));
 
             if (computer == null || computer.isEmpty()) continue; // no computer results
-            if (human == null || human.isEmpty()) {
+            if (human.isEmpty()) {
                 // no judgements
                 counted++;
                 continue;
