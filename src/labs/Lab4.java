@@ -18,39 +18,40 @@ public class Lab4 {
             pageRankOld.put(node, 1.0 / N);
         }
 
-        double diff;
         double d = 0.9;
         int itr = 0;
-        do {
-            HashMap<Integer, Double> pageRankNew = new HashMap<>();
+        while (true){
+            itr++;
             double prSum = 0.0;
+            HashMap<Integer, Double> pageRankNew = new HashMap<>();
+            // put first term of page rank into new page rank
+            for (int node : graph.getNodes()) pageRankNew.put(node, (1.0 - d) / N);
 
-            //calculate page rank
-            for (int node : graph.getNodes()) {
-                double pr = (1 - d) / N;
-
-                for (int i : graph.getIncomingNodes(node)) {
-                    int outDegree = graph.getOutDegree(i);
-                    if (outDegree > 0) {
-                        pr += d * (pageRankOld.get(i) / outDegree);
-                    }
+            //calculate second term of page rank formula
+            for (int i : graph.getNodes()) {
+                double sumIn = 0.0;
+                for (int jk : graph.getIncomingNodes(i)) {
+                    int out = graph.getOutDegree(jk);
+                    if (out > 0) sumIn += pageRankOld.get(jk) / out;
                 }
-
-                pageRankNew.put(node, pr);
+                double pr = pageRankNew.get(i) + d * sumIn;
                 prSum += pr;
+                pageRankNew.put(i, pr);
             }
+
 
             // normalize values
             for (int node : pageRankNew.keySet()) {
                 pageRankNew.put(node, pageRankNew.get(node) / prSum);
             }
 
-            diff = findDistance(pageRankOld, pageRankNew);
-            System.out.println("distance: " + diff);
+            // calculate L1 distance
+            double dist = findDistance(pageRankOld, pageRankNew);
+            if (dist < 0.001) {
+                break;
+            }
             pageRankOld = (HashMap<Integer, Double>) pageRankNew.clone();
-
-            itr++;
-        } while (diff >= 0.001);
+        }
 
         List<Integer> top20 = pageRankOld.entrySet().stream()
                 .sorted((a,b) -> Double.compare(b.getValue(), a.getValue()))
@@ -58,15 +59,11 @@ public class Lab4 {
                 .map(Map.Entry::getKey)
                 .toList();
 
-//        for (Map.Entry<Integer, Double> entry : top20) {
-//            System.out.println(entry.getKey() + ": " + entry.getValue());
-//        }
-
-
-        System.out.println("page rank new: " + top20);
-        System.out.println(pageRankOld.get(1159));
-        System.out.println("number of iterations: " + itr);
+        System.out.println("top 20: " + top20);
+        System.out.println("iterations:" + itr);
+        System.out.println("page rank 1159: " + pageRankOld.get(1159));
     }
+
 
     public static double findDistance(HashMap<Integer, Double> pageRankOld, HashMap<Integer, Double> pageRankNew) {
         double distance = 0.0;
