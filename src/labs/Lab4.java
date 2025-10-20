@@ -1,66 +1,80 @@
 package labs;
 
+import DocumentClasses.Graph;
 import java.io.*;
 import java.util.*;
 
 public class Lab4 {
 
-    public static void main(String[] args) {
-        HashSet<Integer> nodes = new HashSet<>(); // set of nodes from graph.txt
-        HashMap<Integer, ArrayList<Integer>> adj_list = new HashMap<>(); // key: node, value: list of incoming nodes
-        HashMap<Integer, Integer> out_degree = new HashMap<>(); // key: node, value: out degree
+    public static void main(String[] args) throws IOException {
+        Graph graph = new Graph("./files/graph.txt");
+        int N = graph.getNumNodes();
 
-        // key: node, value: page rank
+        // key: node, value: page rank value
         HashMap<Integer, Double> pageRankOld = new HashMap<>();
-        HashMap<Integer, Double> pageRankNew = new HashMap<>();
 
-        // parse graph.txt
-        try(Scanner reader = new Scanner(new File("./files/graph.txt"))) {
-            while (reader.hasNextLine()) {
-                String line = reader.nextLine();
-                String[] tokens = line.split(",");
-                int source = Integer.parseInt(tokens[0]);  // edge starts
-                int target = Integer.parseInt(tokens[2]); // edge ends
-
-                // add nodes to set (if not already there)
-                nodes.add(source);
-                nodes.add(target);
-
-                // build adjacency list
-                if (adj_list.containsKey(target)) {
-                    // add edge if not previously existing
-                    if (!adj_list.get(target).contains(source)) {
-                        ArrayList<Integer> incoming = adj_list.get(target);
-                        incoming.add(source);
-                        adj_list.put(target, incoming);
-                    }
-                } else {
-                    adj_list.put(target, new ArrayList<>(List.of(source)));
-                }
-
-                // update out_degree
-                // TODO: what happens if node has 2 outgoing edges to same node
-                if (out_degree.containsKey(source)) {
-                    out_degree.put(source, out_degree.get(source) + 1);
-                } else {
-                    out_degree.put(source, 1);
-                }
-
-
-            }
-        } catch (FileNotFoundException e) {
-            System.out.println("File not found");
+        // calculate initial page rank values
+        for (int node : graph.getNodes()) {
+            pageRankOld.put(node, 1.0 / N);
         }
 
-        System.out.println("number of nodes: " + nodes.size());
+        double diff;
+        double d = 0.9;
+        int itr = 0;
+        do {
+            HashMap<Integer, Double> pageRankNew = new HashMap<>();
+            double prSum = 0.0;
+
+            //calculate page rank
+            for (int node : graph.getNodes()) {
+                double pr = (1 - d) / N;
+
+                for (int i : graph.getIncomingNodes(node)) {
+                    int outDegree = graph.getOutDegree(i);
+                    if (outDegree > 0) {
+                        pr += d * (pageRankOld.get(i) / outDegree);
+                    }
+                }
+
+                pageRankNew.put(node, pr);
+                prSum += pr;
+            }
+
+            // normalize values
+            for (int node : pageRankNew.keySet()) {
+                pageRankNew.put(node, pageRankNew.get(node) / prSum);
+            }
+
+            diff = findDistance(pageRankOld, pageRankNew);
+            System.out.println("distance: " + diff);
+            pageRankOld = (HashMap<Integer, Double>) pageRankNew.clone();
+
+            itr++;
+        } while (diff >= 0.001);
+
+        List<Integer> top20 = pageRankOld.entrySet().stream()
+                .sorted((a,b) -> Double.compare(b.getValue(), a.getValue()))
+                .limit(20)
+                .map(Map.Entry::getKey)
+                .toList();
+
+//        for (Map.Entry<Integer, Double> entry : top20) {
+//            System.out.println(entry.getKey() + ": " + entry.getValue());
+//        }
+
+
+        System.out.println("page rank new: " + top20);
+        System.out.println(pageRankOld.get(1159));
+        System.out.println("number of iterations: " + itr);
     }
 
-    // TODO: may change depending on implementation
-    public double L1Norm(ArrayList<Double> x, ArrayList<Double> y) {
-        return 0.0;
+    public static double findDistance(HashMap<Integer, Double> pageRankOld, HashMap<Integer, Double> pageRankNew) {
+        double distance = 0.0;
+        for(Map.Entry<Integer, Double> entry : pageRankOld.entrySet()) {
+            Double oldVal = entry.getValue();
+            Double newVal = pageRankNew.get(entry.getKey());
+            distance += Math.abs(newVal-oldVal);
+        }
+        return distance;
     }
-
-    // parses graph.txt
-    // edge form the node at position 1 to the node at position 3. ignore position 2 and 4
-
 }
