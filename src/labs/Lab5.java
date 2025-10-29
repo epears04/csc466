@@ -22,10 +22,16 @@ public class Lab5 {
         frequentItemSet = new HashMap<>();
         process("./files/shopping_data.txt");
         findFrequentSingleItemSets();
-//        System.out.println(frequentItemSet);
+
+        int i = 2;
+        boolean foundFrequent = true;
+        while (foundFrequent) {
+            foundFrequent = findFrequentItemSets(i);
+            i++;
+        }
+
         for (Map.Entry<Integer, ArrayList<ItemSet>> entry : frequentItemSet.entrySet()) {
-            System.out.println(entry.getKey());
-            System.out.println(entry.getValue());
+            System.out.println(entry.getKey() + "=" + entry.getValue());
         }
     }
 
@@ -48,15 +54,55 @@ public class Lab5 {
         if (k < 2) {
             return false;
         }
-        return k==3;
+
+        boolean found = false;
+        // use linked hash set to maintain order
+        Set<ItemSet> uniqueSets = new LinkedHashSet<>();
+
+        List<ItemSet> prev = frequentItemSet.get(k-1);
+        for (int i = 0; i < prev.size() - 1; i++) {
+            for (int j = i + 1; j < prev.size(); j++) {
+                List<Integer> combo = combineSets(prev.get(i).getItems(), prev.get(j).getItems(), k);
+                // if there is a possible frequent item set
+                if (!combo.isEmpty()) {
+                    ItemSet candidate = new ItemSet(combo);
+                    if (isFrequent(candidate)) {
+                        // test if candidate is unique
+                        if (uniqueSets.add(candidate)) {
+                            found = true;
+                        }
+                    }
+                }
+            }
+        }
+        if (found) {
+            frequentItemSet.put(k, new ArrayList<>(uniqueSets));
+        }
+        return found;
+    }
+
+    // returns combined list of items, or empty list if items cannot be combined
+    public static ArrayList<Integer> combineSets(List<Integer> items1, List<Integer> items2, int k) {
+        ArrayList<Integer> combination = new ArrayList<>(items1);
+        combination.addAll(items2);
+        Set<Integer> comboSet = new HashSet<>(combination);
+        // check if set only shares one item in common
+        if (comboSet.size() == k ) {
+            return new ArrayList<>(comboSet);
+        }
+        return new ArrayList<>();
     }
 
     // returns true if itemSet is frequent
     public static boolean isFrequent(ItemSet itemSet) {
-        int item = itemSet.getItems().getFirst();
-        double freq = (double) itemFrequency.getOrDefault(item, 0) / transactions.size();
-        return freq >= minsup;
-        // TODO: handle k >= 2
+        int hits = 0;
+        for (ItemSet item : transactions) {
+            boolean itemFound = item.getItems().containsAll(itemSet.getItems());
+            if (itemFound) {
+                hits++;
+            }
+        }
+        return (double) hits / transactions.size() >= minsup;
     }
 
     //finds all 1-itemSets
@@ -65,7 +111,8 @@ public class Lab5 {
         for (Map.Entry<Integer, Integer> entry : itemFrequency.entrySet()) {
             double ratio = (double) entry.getValue() / transactions.size();
             if (ratio >= minsup) {
-                ItemSet itemSet = new ItemSet(entry.getKey());
+                Object ArrayList;
+                ItemSet itemSet = new ItemSet(new ArrayList<>(List.of(entry.getKey())));
                 singleSets.add(itemSet);
             }
         }
