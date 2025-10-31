@@ -9,11 +9,11 @@ public class ItemSet {
     public ItemSet(String itemSet, HashMap<Integer, Integer> itemFrequency) {
         // item set input as transaction number followed by a list of items that were purchases
         String[] tokens = itemSet.split(", ");
-        items = new ArrayList<>();
+        this.items = new ArrayList<>();
         // start at 1 to account for transaction number
         for (int i = 1; i < tokens.length; i++) {
             int item = Integer.parseInt(tokens[i]);
-            items.add(item);
+            this.items.add(item);
             // no duplicate items in transaction so will only add once
             itemFrequency.merge(item, 1, Integer::sum); // number of times it appears in transaction
         }

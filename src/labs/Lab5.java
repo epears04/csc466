@@ -6,20 +6,24 @@ import java.util.*;
 
 public class Lab5 {
 
-    private static final double minsup = 0.01;
-    private static ArrayList<ItemSet> transactions; //lists of all itemSets
-    private static ArrayList<Integer> items; //lists of all items
+    private final double minsup;
+    private final ArrayList<ItemSet> transactions; //lists of all itemSets
+    private final ArrayList<Integer> items; //lists of all items
 
     //lists frequent itemSets. E.g., for key=1, store all 1-itemSets, for key=2, all 2-itemSets and so on.
-    private static HashMap<Integer, ArrayList<ItemSet>> frequentItemSet;
+    private final HashMap<Integer, ArrayList<ItemSet>> frequentItemSet;
     // key: transaction number, value: number of transactions it is in
-    private static HashMap<Integer, Integer> itemFrequency;
+    private final HashMap<Integer, Integer> itemFrequency;
+    private final HashMap<ItemSet, Double> itemSupport;
 
-    public static void main() {
-        transactions = new ArrayList<>();
-        items = new ArrayList<>();
-        itemFrequency = new HashMap<>();
-        frequentItemSet = new HashMap<>();
+    public Lab5() {
+        this.minsup = 0.01;
+        this.transactions = new ArrayList<>();
+        this.items = new ArrayList<>();
+        this.itemFrequency = new HashMap<>();
+        this.frequentItemSet = new HashMap<>();
+        this.itemSupport = new HashMap<>();
+
         process("./files/shopping_data.txt");
         findFrequentSingleItemSets();
 
@@ -29,14 +33,10 @@ public class Lab5 {
             foundFrequent = findFrequentItemSets(i);
             i++;
         }
-
-        for (Map.Entry<Integer, ArrayList<ItemSet>> entry : frequentItemSet.entrySet()) {
-            System.out.println(entry.getKey() + "=" + entry.getValue());
-        }
     }
 
     // process input file and populate transactions and items
-    public static void process(String fileName) {
+    public void process(String fileName) {
         File file = new File(fileName);
         try(Scanner reader = new Scanner(file)) {
             while (reader.hasNextLine()) {
@@ -50,7 +50,7 @@ public class Lab5 {
     }
 
     //finds all k-itemSets, Returns false if no itemSets were found (precondition k>=2)
-    public static boolean findFrequentItemSets(int k) {
+    public boolean findFrequentItemSets(int k) {
         if (k < 2) {
             return false;
         }
@@ -82,7 +82,7 @@ public class Lab5 {
     }
 
     // returns combined list of items, or empty list if items cannot be combined
-    public static ArrayList<Integer> combineSets(List<Integer> items1, List<Integer> items2, int k) {
+    public ArrayList<Integer> combineSets(List<Integer> items1, List<Integer> items2, int k) {
         ArrayList<Integer> combination = new ArrayList<>(items1);
         combination.addAll(items2);
         Set<Integer> comboSet = new HashSet<>(combination);
@@ -94,28 +94,50 @@ public class Lab5 {
     }
 
     // returns true if itemSet is frequent
-    public static boolean isFrequent(ItemSet itemSet) {
+    public boolean isFrequent(ItemSet itemSet) {
         int hits = 0;
-        for (ItemSet item : transactions) {
-            boolean itemFound = item.getItems().containsAll(itemSet.getItems());
-            if (itemFound) {
-                hits++;
-            }
+        for (ItemSet t : transactions) {
+            boolean itemFound = new HashSet<>(t.getItems()).containsAll(itemSet.getItems());
+            if (itemFound) hits++;
         }
-        return (double) hits / transactions.size() >= minsup;
+        double support = (double) hits / transactions.size();
+        if (support >= minsup) {
+            itemSupport.put(itemSet, support);
+            return true;
+        }
+        return false;
     }
 
     //finds all 1-itemSets
-    public static void findFrequentSingleItemSets() {
+    public void findFrequentSingleItemSets() {
         ArrayList<ItemSet> singleSets = new ArrayList<>();
         for (Map.Entry<Integer, Integer> entry : itemFrequency.entrySet()) {
             double ratio = (double) entry.getValue() / transactions.size();
             if (ratio >= minsup) {
-                Object ArrayList;
                 ItemSet itemSet = new ItemSet(new ArrayList<>(List.of(entry.getKey())));
                 singleSets.add(itemSet);
+                itemSupport.put(itemSet, ratio);
             }
         }
         frequentItemSet.put(1, singleSets);
+    }
+
+    public HashMap<Integer, ArrayList<ItemSet>> getFrequentItemSets() {
+        return frequentItemSet;
+    }
+
+    public ArrayList<ItemSet> getTransactions() {
+        return transactions;
+    }
+
+    public HashMap<ItemSet, Double> getItemSupport() {
+        return itemSupport;
+    }
+
+    public static void main(String[] args) {
+        Lab5 lab5 = new Lab5();
+        for (Map.Entry<Integer, ArrayList<ItemSet>> entry : lab5.getFrequentItemSets().entrySet()) {
+            System.out.println(entry.getKey() + "=" + entry.getValue());
+        }
     }
 }
