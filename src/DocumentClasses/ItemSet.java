@@ -26,7 +26,8 @@ public class ItemSet {
     // create an itemSet with a single item
     public ItemSet(List<Integer> newItems) {
         Collections.sort(newItems);
-        this.items = Collections.unmodifiableList(newItems);
+        this.items = newItems;
+//        Collections.unmodifiableList(newItems);
     }
 
     public List<Integer> getItems() {
