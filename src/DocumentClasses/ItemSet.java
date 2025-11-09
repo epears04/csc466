@@ -27,7 +27,6 @@ public class ItemSet {
     public ItemSet(List<Integer> newItems) {
         Collections.sort(newItems);
         this.items = newItems;
-//        Collections.unmodifiableList(newItems);
     }
 
     public List<Integer> getItems() {
@@ -52,11 +51,11 @@ public class ItemSet {
         if (this == o) return true;
         if (!(o instanceof ItemSet)) return false;
         ItemSet other = (ItemSet) o;
-        return items.equals(other.items);
+        return new HashSet<>(items).equals(new HashSet<>(other.items));
     }
 
     @Override
     public int hashCode() {
-        return items.hashCode();
+        return new HashSet<>(items).hashCode();
     }
 }
