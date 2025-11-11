@@ -36,7 +36,8 @@ public class Lab6 {
             ArrayList<ItemSet> rhsItems = new ArrayList<>(entry.getValue().keySet());
             int size = 1;
 
-            while(!rhsItems.isEmpty()) {
+            // iterate through all items with more than 1 rhs candidate
+            while(rhsItems.size() > 1) {
                 ArrayList<ItemSet> candidates = combine(rhsItems, size);
                 ArrayList<ItemSet> nextRhs = new ArrayList<>();
 
