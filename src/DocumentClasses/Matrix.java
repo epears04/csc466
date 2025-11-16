@@ -6,9 +6,11 @@ import java.io.*;
 public class Matrix {
     // a variable that is of type a two-dimensional array
     private int[][] matrix;
+    private double lambda;
 
     public Matrix(int[][] matrix) {
         this.matrix = matrix;
+        this.lambda = 1.0 / matrix.length;
     }
 
     // returns the number of rows in which the element at position attribute (a number between 0 and 4) is equal to value.
@@ -135,5 +137,58 @@ public class Matrix {
 
     public boolean meetsThreshold(double threshold, ArrayList<Integer> rows) {
         return findEntropy(rows) <= threshold;
+    }
+
+
+    // LAB 8 FUNCTIONS
+
+    // return all indices of all rows
+    public ArrayList<Integer> findAllRows() {
+        int numRows = matrix.length;
+        ArrayList<Integer> rows = new ArrayList<>();
+        for (int i = 0; i < numRows; i++) {
+            rows.add(i);
+        }
+        return rows;
+    }
+
+    // returns the index of the category attribute
+    public int getCategoryAttribute() {
+        return matrix[0].length - 1;
+    }
+
+    // takes as input the values for a single row and the category
+    // returns the probability that the row belongs to the category using the Naïve Bayesian model
+    // Pr (C=category | Features = row
+    public double findProb(int[] row, int category) {
+        ArrayList<Integer> rows = findAllRows();
+        int categoryIndex = getCategoryAttribute();
+
+        int n = rows.size();
+        int nj = findFrequency(categoryIndex, category, rows);
+        double prob = (double) nj / n; // start with probability of class
+
+        for (int i = 0; i < row.length; i++) {
+            int nij = findFrequency(i, row[i], findRows(categoryIndex, category, rows));
+            int mi = findDifferentValues(i, rows).size();
+            prob *= ((nij + lambda) / (nj + (lambda * mi)));
+        }
+        return prob;
+    }
+
+    // takes as input the values for a single row
+    // returns the most probably category using the Naïve Bayesian model
+    public int findCategory(int[] row) {
+        HashSet<Integer> categories = findDifferentValues(getCategoryAttribute(), findAllRows());
+        double maxProb = 0.0;
+        int maxCategory = -1;
+        for (int category : categories) {
+            double prob = findProb(row, category);
+            if (prob > maxProb) {
+                maxProb = prob;
+                maxCategory = category;
+            }
+        }
+        return maxCategory;
     }
 }
